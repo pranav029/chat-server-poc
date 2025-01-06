@@ -1,4 +1,4 @@
-package com.chat.server.chat_server_poc;
+package com.chat.server.poc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

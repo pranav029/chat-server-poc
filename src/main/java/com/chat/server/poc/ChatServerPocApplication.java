@@ -1,4 +1,4 @@
-package com.chat.server.chat_server_poc;
+package com.chat.server.poc;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
