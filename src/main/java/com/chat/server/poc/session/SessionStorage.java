@@ -4,6 +4,7 @@ import com.chat.server.poc.exceptions.WebSocketSessionNotFound;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ public class SessionStorage {
         sessionMap = new HashMap<>();
     }
 
-    public WebSocketSession getSessionForUserId(String userId) {
+    public WebSocketSession getSessionForUserId(String userId) throws WebSocketSessionNotFound {
         if (!sessionMap.containsKey(userId))
             throw new WebSocketSessionNotFound(userId);
         return sessionMap.get(userId);
