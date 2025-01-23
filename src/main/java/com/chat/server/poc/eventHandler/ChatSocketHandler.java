@@ -1,5 +1,7 @@
-package com.chat.server.poc.handlers;
+package com.chat.server.poc.eventHandler;
 
+import com.chat.server.poc.service.MessageService;
+import com.chat.server.poc.session.CacheManager;
 import com.chat.server.poc.session.SessionManager;
 import com.netflix.appinfo.EurekaInstanceConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Slf4j
 public class ChatSocketHandler extends TextWebSocketHandler {
     private final SessionManager sessionManager;
-    private final ChatMessageHandler chatMessageHandler;
+    private final CacheManager cacheManager;
+    private final MessageService messageService;
     @Autowired
     private Environment environment;
 
@@ -23,16 +26,15 @@ public class ChatSocketHandler extends TextWebSocketHandler {
     private EurekaInstanceConfig instanceConfig;
 
     @Autowired
-    public ChatSocketHandler(SessionManager sessionManager, ChatMessageHandler chatMessageHandler) {
+    public ChatSocketHandler(SessionManager sessionManager, CacheManager cacheManager, MessageService messageService) {
         this.sessionManager = sessionManager;
-        this.chatMessageHandler = chatMessageHandler;
+        this.cacheManager = cacheManager;
+        this.messageService = messageService;
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
-        log.info("Received message {}", message.getPayload());
-        chatMessageHandler.handleMessage(message.getPayload());
     }
 
     @Override
@@ -40,13 +42,15 @@ public class ChatSocketHandler extends TextWebSocketHandler {
         super.afterConnectionEstablished(session);
         log.info("Connection established " + session.getId());
         sessionManager.addSession(session);
-        //TODO USER IS ONLINE CHECK FOR UNDELIVERED MESSAGES
+        messageService.checkForUndeliveredMessages(sessionManager.getUserIdFromSession(session));
         session.sendMessage(new TextMessage(String.format("Connected to %s with id %s", environment.getProperty("server.port"), instanceConfig.getInstanceId())));
+        cacheManager.setValue(session.getAttributes().get("userId").toString().trim(), instanceConfig.getInstanceId());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         sessionManager.removeSession(session);
+        cacheManager.removeKey(session.getAttributes().get("userId").toString().trim());
     }
 }

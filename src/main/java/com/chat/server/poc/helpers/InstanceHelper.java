@@ -1,59 +1,61 @@
 package com.chat.server.poc.helpers;
 
 import com.chat.server.poc.dto.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.MalformedURLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
 public class InstanceHelper {
     private final RestTemplate restTemplate;
     private final DiscoveryClient discoveryClient;
-    private final String instanceId;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper mapper;
 
     @Value("${spring.application.name}")
     private String serviceName;
 
     @Autowired
-    public InstanceHelper(RestTemplate restTemplate, DiscoveryClient discoveryClient, @Qualifier("instanceId") String instanceId) {
+    public InstanceHelper(
+            RestTemplate restTemplate,
+            DiscoveryClient discoveryClient,
+            @Qualifier("pocRedisTemplate") RedisTemplate<String, String> redisTemplate,
+            ObjectMapper mapper
+    ) {
         this.restTemplate = restTemplate;
         this.discoveryClient = discoveryClient;
-        this.instanceId = instanceId;
+        this.redisTemplate = redisTemplate;
+        this.mapper = mapper;
     }
 
-    public String getUrlForInstanceId(String instanceId) throws MalformedURLException {
+    private void checkIfInstanceIsUp(String instanceId) {
         List<ServiceInstance> instances = discoveryClient.getInstances(serviceName);
-        var targetInstance = instances.stream().filter(instance -> instance.getInstanceId().equals(instanceId))
+        instances.stream().filter(instance -> instance.getInstanceId().equals(instanceId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format("Instance with id %s not found", instanceId)));
-        return targetInstance.getUri().toString().concat("/chat/message/send");
     }
 
     @Async
-    public void sendMessageToInstance(String instanceI, Message message) {
+    public void sendMessageToInstance(String instanceId, Message message, Consumer<Message> onError) {
         try {
-            String url = getUrlForInstanceId(instanceId).replace("8086", "8087");
-            restTemplate.postForEntity(url, getHttpEntityForRequest(message), String.class);
+            checkIfInstanceIsUp(instanceId);
+            redisTemplate.convertAndSend(instanceId, mapper.writeValueAsString(message));
+            log.info(String.format("Message with id %s sent to instance %s", message.getMessageId(), instanceId));
         } catch (Exception e) {
             log.error(e.getMessage());
+            onError.accept(message);
         }
-    }
-
-    private HttpEntity<Object> getHttpEntityForRequest(Message message) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Cookie", "name=random");
-        return new HttpEntity<>(message, headers);
     }
 }

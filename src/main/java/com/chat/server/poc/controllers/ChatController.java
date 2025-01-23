@@ -1,7 +1,8 @@
 package com.chat.server.poc.controllers;
 
-import com.chat.server.poc.handlers.ChatMessageHandler;
+
 import com.chat.server.poc.dto.Message;
+import com.chat.server.poc.service.MessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -13,18 +14,18 @@ import java.util.Map;
 @RestController
 @RequestMapping("chat/message")
 public class ChatController {
-    private final ChatMessageHandler chatMessageHandler;
+    private final MessageService messageService;
     @Autowired
     private Environment environment;
 
     @Autowired
-    public ChatController(ChatMessageHandler chatMessageHandler) {
-        this.chatMessageHandler = chatMessageHandler;
+    public ChatController(MessageService messageService) {
+        this.messageService = messageService;
     }
 
     @PostMapping("/send")
     public Map<String, String> sendMessage(@RequestBody Message message) throws JsonProcessingException {
-        chatMessageHandler.handleMessage(message);
+        messageService.sendMessage(message);
         return Map.of("Success", "true");
     }
 
