@@ -1,18 +1,38 @@
 package com.chat.server.poc.utils;
 
-import com.chat.server.poc.dto.Message;
-import com.chat.server.poc.dto.MessageType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.chat.server.poc.dto.request.ChatMessageDto;
+import com.chat.server.poc.dto.response.SocketMessageDto;
+import com.chat.server.poc.dto.response.SocketMessageType;
+import com.chat.server.poc.dto.response.UserStatus;
+import com.chat.server.poc.entities.ChatMessage;
+import com.chat.server.poc.entities.Message;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 @Slf4j
 public class MessageUtils {
-    public static String getRecipientId(Message message) {
-        return message.getType().equals(MessageType.RECEIPT) ? message.getSenderId() : message.getReceiverId();
+
+    public static SocketMessageDto messageResponse(List<Message> messages) {
+        SocketMessageDto socketMessageDto = new SocketMessageDto();
+        socketMessageDto.setMessage(messages);
+        socketMessageDto.setType(SocketMessageType.MESSAGE);
+        return socketMessageDto;
     }
 
-    public static Message deepCopy(Message message, ObjectMapper mapper) throws JsonProcessingException {
-        return mapper.convertValue(mapper.writeValueAsString(message), Message.class);
+    public static List<SocketMessageDto> userStatusResponse(String userId, UserStatus status) {
+        SocketMessageDto socketMessageDto = new SocketMessageDto();
+        socketMessageDto.setType(SocketMessageType.USER_STATUS);
+        socketMessageDto.setUserId(userId);
+        socketMessageDto.setUserStatus(status);
+        return List.of(socketMessageDto);
+    }
+
+    public static ChatMessage mapFrom(ChatMessageDto dto){
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setContent(dto.getContent());
+        chatMessage.setSenderId(dto.getSenderId());
+        chatMessage.setReceiverId(dto.getReceiverId());
+        return chatMessage;
     }
 }

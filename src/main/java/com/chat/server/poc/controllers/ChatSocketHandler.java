@@ -1,6 +1,7 @@
-package com.chat.server.poc.eventHandler;
+package com.chat.server.poc.controllers;
 
-import com.chat.server.poc.service.MessageService;
+import com.chat.server.poc.service.message.MessageDeliveryService;
+import com.chat.server.poc.service.message.MessageService;
 import com.chat.server.poc.session.CacheManager;
 import com.chat.server.poc.session.SessionManager;
 import com.netflix.appinfo.EurekaInstanceConfig;
@@ -18,7 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ChatSocketHandler extends TextWebSocketHandler {
     private final SessionManager sessionManager;
     private final CacheManager cacheManager;
-    private final MessageService messageService;
+    private final MessageDeliveryService deliveryService;
     @Autowired
     private Environment environment;
 
@@ -26,10 +27,10 @@ public class ChatSocketHandler extends TextWebSocketHandler {
     private EurekaInstanceConfig instanceConfig;
 
     @Autowired
-    public ChatSocketHandler(SessionManager sessionManager, CacheManager cacheManager, MessageService messageService) {
+    public ChatSocketHandler(SessionManager sessionManager, CacheManager cacheManager, MessageDeliveryService deliveryService) {
         this.sessionManager = sessionManager;
         this.cacheManager = cacheManager;
-        this.messageService = messageService;
+        this.deliveryService = deliveryService;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class ChatSocketHandler extends TextWebSocketHandler {
         super.afterConnectionEstablished(session);
         log.info("Connection established " + session.getId());
         sessionManager.addSession(session);
-        messageService.checkForUndeliveredMessages(sessionManager.getUserIdFromSession(session));
+        deliveryService.deliverMessagesToUser(sessionManager.getUserIdFromSession(session));
         session.sendMessage(new TextMessage(String.format("Connected to %s with id %s", environment.getProperty("server.port"), instanceConfig.getInstanceId())));
         cacheManager.setValue(session.getAttributes().get("userId").toString().trim(), instanceConfig.getInstanceId());
     }

@@ -1,7 +1,8 @@
 package com.chat.server.poc.configs;
 
-import com.chat.server.poc.eventHandler.ChatSocketHandler;
-import com.chat.server.poc.service.MessageService;
+import com.chat.server.poc.controllers.ChatSocketHandler;
+import com.chat.server.poc.service.message.MessageDeliveryService;
+import com.chat.server.poc.service.message.MessageService;
 import com.chat.server.poc.session.CacheManager;
 import com.chat.server.poc.session.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +17,7 @@ public class HandlerConfig {
     }
 
     @Bean
-    public ChatSocketHandler provideChatSocketHandler(SessionManager sessionManager, CacheManager cacheManager, MessageService service) {
+    public ChatSocketHandler provideChatSocketHandler(SessionManager sessionManager, CacheManager cacheManager, MessageDeliveryService service) {
         return new ChatSocketHandler(sessionManager, cacheManager, service);
     }
 }

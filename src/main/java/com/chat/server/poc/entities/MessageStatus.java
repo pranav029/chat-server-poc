@@ -1,4 +1,4 @@
-package com.chat.server.poc.dto;
+package com.chat.server.poc.entities;
 
 public enum MessageStatus {
     SENT, READ, DELIVERED, QUEUE
