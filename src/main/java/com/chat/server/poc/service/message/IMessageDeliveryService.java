@@ -52,7 +52,7 @@ public class IMessageDeliveryService implements MessageDeliveryService {
             List<Message> messages = Stream.concat(messageRepo.getUndeliveredMessagesFor(userId).orElseGet(ArrayList::new).stream(),
                             messageRepo.getUndeliveredReceiptsFor(userId).orElseGet(ArrayList::new).stream())
                     .collect(Collectors.toList());
-            if (!messages.isEmpty())
+            if (messages.isEmpty())
                 return;
             String payload = mapper.writeValueAsString(MessageUtils.messageResponse(messages));
             TextMessage textMessage = new TextMessage(payload);

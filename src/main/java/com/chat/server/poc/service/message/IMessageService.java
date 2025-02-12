@@ -36,6 +36,8 @@ public class IMessageService implements MessageService {
         message.setCreatedAt(Instant.now().toString());
         message.setStatus(MessageStatus.SENT);
         ChatMessage chatMessage = messageRepo.save(message);
+        log.info("Message received on server with id {}", chatMessage.getMessageId());
+        updateStatus(MessageStatus.SENT, chatMessage.getSenderId(), chatMessage.getReceiverId(), chatMessage.getMessageId());
         dispatcher.dispatchSentEvent(chatMessage.getSenderId(), chatMessage.getReceiverId());
         dispatcher.dispatchSendEvent(chatMessage.getSenderId(), chatMessage.getReceiverId());
         return chatMessage;
@@ -44,6 +46,7 @@ public class IMessageService implements MessageService {
     @Override
     public void updateStatus(MessageStatus status, String senderId, String receiverId, String messageId) {
         messageRepo.updateStatus(messageId, receiverId, senderId, status);
+        log.info("Receipt received with id {} & status {}", messageId, status.toString());
     }
 
     @Async
@@ -57,6 +60,7 @@ public class IMessageService implements MessageService {
     @Override
     public void messageDelivered(String messageId, String receiverId, String senderId) {
         updateStatus(MessageStatus.DELIVERED, senderId, receiverId, messageId);
+        messageRepo.deleteMessage(messageId, receiverId, senderId);
         dispatcher.dispatchDeliveredEvent(senderId, receiverId);
     }
 
@@ -69,10 +73,5 @@ public class IMessageService implements MessageService {
     @Override
     public List<ChatMessage> getAllMessages(String receiverId, String senderId) {
         return messageRepo.getAllMessages(receiverId, senderId);
-    }
-
-    @Async
-    private void saveToDb(ChatMessage message) {
-        messageRepo.save(message);
     }
 }

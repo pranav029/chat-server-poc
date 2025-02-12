@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 
 @Data
 @AllArgsConstructor
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
         @JsonSubTypes.Type(value = Receipt.class, name = "RECEIPT")
 })
 public abstract class Message {
+    @Id
     private String messageId;
     private String senderId;
     private String receiverId;

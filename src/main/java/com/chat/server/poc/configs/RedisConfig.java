@@ -1,6 +1,7 @@
 package com.chat.server.poc.configs;
 
 import com.chat.server.poc.eventHandler.RedisEventListener;
+import com.chat.server.poc.utils.AppConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,7 +59,10 @@ public class RedisConfig {
         RedisMessageListenerContainer container
                 = new RedisMessageListenerContainer();
         container.setConnectionFactory(provideConnectionFactory());
-        container.addMessageListener(adapter, provideTopic());
+        container.addMessageListener(adapter, new ChannelTopic(AppConstants.SENT_TOPIC));
+        container.addMessageListener(adapter, new ChannelTopic(AppConstants.SEND_TOPIC));
+        container.addMessageListener(adapter, new ChannelTopic(AppConstants.DELIVERED_TOPIC));
+        container.addMessageListener(adapter, new ChannelTopic(AppConstants.READ_TOPIC));
         return container;
     }
 

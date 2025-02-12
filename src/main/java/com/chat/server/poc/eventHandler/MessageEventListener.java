@@ -39,6 +39,7 @@ public class MessageEventListener {
 
     @EventListener
     public void onSendEvent(SendEvent event) {
+        log.info("Send event for {}", event.getReceiverId());
         deliveryService.deliverMessagesToUser(event.getReceiverId());
     }
 }

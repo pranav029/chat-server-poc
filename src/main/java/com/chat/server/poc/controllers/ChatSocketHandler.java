@@ -1,7 +1,6 @@
 package com.chat.server.poc.controllers;
 
 import com.chat.server.poc.service.message.MessageDeliveryService;
-import com.chat.server.poc.service.message.MessageService;
 import com.chat.server.poc.session.CacheManager;
 import com.chat.server.poc.session.SessionManager;
 import com.netflix.appinfo.EurekaInstanceConfig;
