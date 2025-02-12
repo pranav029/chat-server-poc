@@ -31,14 +31,13 @@ public class RedisEventListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String redisTopic = new String(pattern);
-        if (redisTopic.equals(AppConstants.READ_TOPIC))
-            handleMessage(message, ReadEvent.class);
-        if (redisTopic.equals(AppConstants.DELIVERED_TOPIC))
-            handleMessage(message, DeliveredEvent.class);
-        if (redisTopic.equals(AppConstants.SENT_TOPIC))
-            handleMessage(message, SentEvent.class);
-        if (redisTopic.equals(AppConstants.SEND_TOPIC))
-            handleMessage(message, SendEvent.class);
+        switch (redisTopic) {
+            case AppConstants.READ_TOPIC -> handleMessage(message, ReadEvent.class);
+            case AppConstants.DELIVERED_TOPIC -> handleMessage(message, DeliveredEvent.class);
+            case AppConstants.SENT_TOPIC -> handleMessage(message, SentEvent.class);
+            case AppConstants.SEND_TOPIC -> handleMessage(message, SendEvent.class);
+            default -> log.error("Unknown topic {}", redisTopic);
+        }
     }
 
     private <T extends ChatEvent> void handleMessage(Message message, Class<T> type) {
