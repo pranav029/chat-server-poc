@@ -1,10 +1,7 @@
 package com.chat.server.poc.service.message;
 
-import com.chat.server.poc.dto.response.SocketMessageType;
 import com.chat.server.poc.dto.response.UserStatus;
-import com.chat.server.poc.entities.ChatMessage;
 import com.chat.server.poc.entities.Message;
-import com.chat.server.poc.entities.Receipt;
 import com.chat.server.poc.exceptions.WebSocketSessionNotFound;
 import com.chat.server.poc.repositories.message.MessageRepo;
 import com.chat.server.poc.session.SessionStorage;

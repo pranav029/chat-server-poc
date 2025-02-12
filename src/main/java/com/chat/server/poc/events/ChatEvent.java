@@ -1,7 +1,5 @@
 package com.chat.server.poc.events;
 
-import com.chat.server.poc.entities.ChatMessage;
-import com.chat.server.poc.entities.Receipt;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
