@@ -1,9 +1,6 @@
 package com.chat.server.poc.eventHandler;
 
-import com.chat.server.poc.events.DeliveredEvent;
-import com.chat.server.poc.events.ReadEvent;
-import com.chat.server.poc.events.SendEvent;
-import com.chat.server.poc.events.SentEvent;
+import com.chat.server.poc.events.*;
 import com.chat.server.poc.service.message.MessageDeliveryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,5 +38,10 @@ public class MessageEventListener {
     public void onSendEvent(SendEvent event) {
         log.info("Send event for {}", event.getReceiverId());
         deliveryService.deliverMessagesToUser(event.getReceiverId());
+    }
+
+    @EventListener
+    public void onUserStatusEvent(StatusEvent event) {
+        deliveryService.notifyStatusForUser(event.getUserStatus(), event.getUserId());
     }
 }

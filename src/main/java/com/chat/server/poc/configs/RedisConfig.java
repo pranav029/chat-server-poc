@@ -37,7 +37,6 @@ public class RedisConfig {
     @Bean("factory")
     public RedisConnectionFactory provideConnectionFactory() {
         var configuration = new RedisStandaloneConfiguration();
-        log.info(username);
         configuration.setHostName(hostname);
         configuration.setPort(port);
         configuration.setPassword(password);
@@ -63,6 +62,7 @@ public class RedisConfig {
         container.addMessageListener(adapter, new ChannelTopic(AppConstants.SEND_TOPIC));
         container.addMessageListener(adapter, new ChannelTopic(AppConstants.DELIVERED_TOPIC));
         container.addMessageListener(adapter, new ChannelTopic(AppConstants.READ_TOPIC));
+        container.addMessageListener(adapter, new ChannelTopic(AppConstants.USER_STATUS_TOPIC));
         return container;
     }
 

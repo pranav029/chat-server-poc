@@ -36,6 +36,7 @@ public class RedisEventListener implements MessageListener {
             case AppConstants.DELIVERED_TOPIC -> handleMessage(message, DeliveredEvent.class);
             case AppConstants.SENT_TOPIC -> handleMessage(message, SentEvent.class);
             case AppConstants.SEND_TOPIC -> handleMessage(message, SendEvent.class);
+            case AppConstants.USER_STATUS_TOPIC -> handleUserStatus(message);
             default -> log.error("Unknown topic {}", redisTopic);
         }
     }
@@ -43,6 +44,15 @@ public class RedisEventListener implements MessageListener {
     private <T extends ChatEvent> void handleMessage(Message message, Class<T> type) {
         try {
             ChatEvent event = mapper.readValue(new String(message.getBody()), type);
+            publisher.publishEvent(event);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void handleUserStatus(Message message) {
+        try {
+            StatusEvent event = mapper.readValue(new String(message.getBody()), StatusEvent.class);
             publisher.publishEvent(event);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());

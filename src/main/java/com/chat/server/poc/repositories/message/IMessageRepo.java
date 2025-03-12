@@ -32,19 +32,19 @@ public class IMessageRepo implements MessageRepo {
 
     @Override
     public ChatMessage updateStatus(String messageId, String receiverId, String senderId, MessageStatus status) {
-        Optional<Receipt> receipt = receiptRepo.findByMessageIdAndSenderIdAndReceiverId(messageId, senderId, receiverId);
-        if (receipt.isPresent()) {
-            receipt.get().setStatus(status);
-            receiptRepo.save(receipt.get());
-        } else {
-            Receipt newReceipt = new Receipt();
-            newReceipt.setMessageId(messageId);
-            newReceipt.setSenderId(senderId);
-            newReceipt.setReceiverId(receiverId);
-            newReceipt.setCreatedAt(Instant.now().toString());
-            newReceipt.setStatus(status);
-            receiptRepo.save(newReceipt);
-        }
+        receiptRepo.findByMessageIdAndSenderIdAndReceiverId(messageId, senderId, receiverId)
+                .ifPresentOrElse(receipt -> {
+                    receipt.setStatus(status);
+                    receiptRepo.save(receipt);
+                }, () -> {
+                    Receipt newReceipt = new Receipt();
+                    newReceipt.setMessageId(messageId);
+                    newReceipt.setSenderId(senderId);
+                    newReceipt.setReceiverId(receiverId);
+                    newReceipt.setCreatedAt(Instant.now().toString());
+                    newReceipt.setStatus(status);
+                    receiptRepo.save(newReceipt);
+                });
         return null;
     }
 

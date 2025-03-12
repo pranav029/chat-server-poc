@@ -13,14 +13,14 @@ import java.util.List;
 @Slf4j
 public class MessageUtils {
 
-    public static SocketMessageDto messageResponse(List<Message> messages) {
+    public static SocketMessageDto buildMessageResponse(List<Message> messages) {
         SocketMessageDto socketMessageDto = new SocketMessageDto();
         socketMessageDto.setMessage(messages);
         socketMessageDto.setType(SocketMessageType.MESSAGE);
         return socketMessageDto;
     }
 
-    public static List<SocketMessageDto> userStatusResponse(String userId, UserStatus status) {
+    public static List<SocketMessageDto> buildUserStatusResponse(String userId, UserStatus status) {
         SocketMessageDto socketMessageDto = new SocketMessageDto();
         socketMessageDto.setType(SocketMessageType.USER_STATUS);
         socketMessageDto.setUserId(userId);

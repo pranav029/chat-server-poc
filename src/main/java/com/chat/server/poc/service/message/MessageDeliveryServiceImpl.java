@@ -15,17 +15,18 @@ import org.springframework.web.socket.TextMessage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @Slf4j
-public class IMessageDeliveryService implements MessageDeliveryService {
+public class MessageDeliveryServiceImpl implements MessageDeliveryService {
     private final MessageRepo messageRepo;
     private final SessionStorage sessionStorage;
     private final ObjectMapper mapper;
 
-    public IMessageDeliveryService(
+    public MessageDeliveryServiceImpl(
             MessageRepo messageRepo,
             SessionStorage sessionStorage,
             ObjectMapper mapper
@@ -37,7 +38,20 @@ public class IMessageDeliveryService implements MessageDeliveryService {
 
     @Override
     public void notifyStatusForUser(UserStatus status, String userId) {
-        //TODO find all users subscribedTo to this use for this instance and update
+        Set<String> subscribers = sessionStorage.getSubscribers(userId);
+        for (var subscriber : subscribers) {
+            try {
+                var session = sessionStorage.getSessionForUserId(subscriber);
+                if (!session.isOpen())
+                    continue;
+                String payload = mapper.writeValueAsString(MessageUtils.buildUserStatusResponse(userId, status));
+                TextMessage textMessage = new TextMessage(payload);
+                session.sendMessage(textMessage);
+                log.info("Message sent to to user {}", subscriber);
+            } catch (WebSocketSessionNotFound | IOException e) {
+                log.error(e.getMessage());
+            }
+        }
     }
 
     @Async
@@ -49,9 +63,11 @@ public class IMessageDeliveryService implements MessageDeliveryService {
             List<Message> messages = Stream.concat(messageRepo.getUndeliveredMessagesFor(userId).orElseGet(ArrayList::new).stream(),
                             messageRepo.getUndeliveredReceiptsFor(userId).orElseGet(ArrayList::new).stream())
                     .collect(Collectors.toList());
-            if (messages.isEmpty())
+            if (messages.isEmpty()) {
+                log.info("Empty message queue.Aborting delivery attempt");
                 return;
-            String payload = mapper.writeValueAsString(MessageUtils.messageResponse(messages));
+            }
+            String payload = mapper.writeValueAsString(MessageUtils.buildMessageResponse(messages));
             TextMessage textMessage = new TextMessage(payload);
             userSession.sendMessage(textMessage);
             log.info("Message sent to to user {}", userId);

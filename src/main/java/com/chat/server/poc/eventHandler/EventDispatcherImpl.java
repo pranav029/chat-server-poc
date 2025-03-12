@@ -1,5 +1,6 @@
 package com.chat.server.poc.eventHandler;
 
+import com.chat.server.poc.dto.response.UserStatus;
 import com.chat.server.poc.events.*;
 import com.chat.server.poc.helpers.UserHelper;
 import com.chat.server.poc.utils.AppConstants;
@@ -14,14 +15,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class IEventDispatcher implements EventDispatcher {
+public class EventDispatcherImpl implements EventDispatcher {
     private final ApplicationEventPublisher publisher;
     private final RedisTemplate<String, String> redisTemplate;
     private final UserHelper userHelper;
     private final ObjectMapper mapper;
 
     @Autowired
-    public IEventDispatcher(
+    public EventDispatcherImpl(
             ApplicationEventPublisher publisher,
             @Qualifier("pocRedisTemplate") RedisTemplate<String, String> redisTemplate,
             UserHelper userHelper,
@@ -53,6 +54,15 @@ public class IEventDispatcher implements EventDispatcher {
         dispatchEvent(receiverId, new SendEvent(senderId, receiverId), AppConstants.SEND_TOPIC);
     }
 
+    @Override
+    public void dispatchUserEvent(String userId, UserStatus status) {
+        try {
+            redisTemplate.convertAndSend(AppConstants.USER_STATUS_TOPIC, mapper.writeValueAsString(new StatusEvent(status, userId)));
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+        }
+    }
+
     private void dispatchEvent(String userId, ChatEvent event, String topic) {
         if (userHelper.isUserOnline(userId)) {
             if (userHelper.isUserConnectedToSameInstance(userId))
@@ -64,6 +74,8 @@ public class IEventDispatcher implements EventDispatcher {
                     log.error(e.getMessage());
                 }
             }
+        } else {
+            //TODO send push notification
         }
     }
 }
